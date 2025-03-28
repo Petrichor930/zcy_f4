@@ -33,7 +33,8 @@ extern "C" {
 /* USER CODE END Includes */
 
 /* USER CODE BEGIN Private defines */
-
+#define RS485_DIR1_GPIO_Port GPIOB
+#define RS485_DIR1_Pin GPIO_PIN_3
 /* USER CODE END Private defines */
 
 void MX_GPIO_Init(void);

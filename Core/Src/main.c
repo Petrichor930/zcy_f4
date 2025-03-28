@@ -18,10 +18,17 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "can.h"
+#include "tim.h"
+#include "usart.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "motor_conf.h"
+#include "init_task.h"
+#include "FreeRTOS.h"
+#include "task.h"
 
 /* USER CODE END Includes */
 
@@ -55,6 +62,26 @@ void SystemClock_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+// // 定义点灯任务的优先级
+// #define LED_TASK_PRIORITY (configMAX_PRIORITIES - 1)
+// // 定义点灯任务的堆栈大小
+// #define LED_TASK_STACK_SIZE 128
+
+// // 点灯任务函数
+// void LedTask(void *pvParameters)
+// {
+//     while (1)
+//     {
+//       // 点亮LED
+//         HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0, GPIO_PIN_RESET);
+//         // 延时一段时间
+//         vTaskDelay(pdMS_TO_TICKS(500));
+//         // 熄灭LED
+//         HAL_GPIO_WritePin(GPIOC,GPIO_PIN_0, GPIO_PIN_SET);
+//         // 再延时一段时间
+//         vTaskDelay(pdMS_TO_TICKS(500));
+//     }
+// }
 /* USER CODE END 0 */
 
 /**
@@ -86,8 +113,23 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_USART2_UART_Init();
+  MX_CAN2_Init();
+  MX_TIM2_Init();
+  MX_USART1_UART_Init();
+  MX_USART3_UART_Init();
+  MX_CAN1_Init();
+  MX_UART5_Init();
   /* USER CODE BEGIN 2 */
+ 
+  robot_init();
+//  // 初始化FreeRTOS
 
+//  // 创建点灯任务
+//   xTaskCreate(LedTask, "LedTask", LED_TASK_STACK_SIZE, NULL, LED_TASK_PRIORITY, NULL);
+
+//  // 启动任务调度器
+//   vTaskStartScheduler();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -124,11 +166,18 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
   RCC_OscInitStruct.PLL.PLLM = 8;
-  RCC_OscInitStruct.PLL.PLLN = 168;
+  RCC_OscInitStruct.PLL.PLLN = 180;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
   RCC_OscInitStruct.PLL.PLLQ = 2;
   RCC_OscInitStruct.PLL.PLLR = 2;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Activate the Over-Drive mode
+  */
+  if (HAL_PWREx_EnableOverDrive() != HAL_OK)
   {
     Error_Handler();
   }
@@ -149,7 +198,20 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+    /* USER CODE BEGIN Callback 0 */
 
+    /* USER CODE END Callback 0 */
+    if (htim->Instance == TIM2 ){
+      BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+      xSemaphoreGiveFromISR(xChassisSemaphore, &xHigherPriorityTaskWoken);
+      portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+    }
+    /* USER CODE BEGIN Callback 1 */
+
+    /* USER CODE END Callback 1 */
+}
 /* USER CODE END 4 */
 
 /**
