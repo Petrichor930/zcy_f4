@@ -49,17 +49,13 @@ void Chassis_Init(Chassis *chassis) {
 
 // 更新底盘状态
 void Chassis_Update(Chassis *chassis) {
-    // 从队列中获取偏航角数据
-    if (xQueueReceive(chassis->yaw_queue, &chassis->cur_yaw, 0) == pdPASS) {
-        // 更新电机数据
+    // 从队列中获取偏航角数
         filter_wheels_raw_data(chassis->motors, &chassis->current_wheels);
-    } else {
-        // ? STM_LOGE("Chassis: update error, no yaw data");
-    }
+ 
 }
 
 // 底盘主循环
-void Chassis_Loop(Chassis *chassis, const rocker_t rocker) {
+void Chassis_Loop(Chassis *chassis, const RC_ctrl_t *rc_ctrl) {
     // 获取互斥锁以保护共享资源
     if (xSemaphoreTake(chassis->mutex, portMAX_DELAY) == pdTRUE) {
         switch (chassis->tag) {
@@ -74,10 +70,10 @@ void Chassis_Loop(Chassis *chassis, const rocker_t rocker) {
 
             case CHASSIS_ENABLE:
                 chassis->current_state = mecanum_forward(&chassis->current_wheels);
-                chassis->exp_yaw -= rocker.lx * 0.0030;
+                chassis->exp_yaw -= rc_ctrl->mouse.press_l * 0.0030;
                 float diff_yaw = get_minor_arc(chassis->exp_yaw, chassis->cur_yaw, 360.f);
-                chassis->expected_state.v_x = s_curve(MAX_VX_SPEED, rocker.ry);
-                chassis->expected_state.v_y = s_curve(MAX_VY_SPEED, rocker.rx);
+                chassis->expected_state.v_x = s_curve(MAX_VX_SPEED, rc_ctrl->mouse.y);
+                chassis->expected_state.v_y = s_curve(MAX_VY_SPEED, rc_ctrl->mouse.x);
                 chassis->expected_state.w_z = pid_calc_deadband(&chassis->chassis_pid, -(float)diff_yaw, 0);
 
                 chassis_pid_ctrl(chassis->motors, chassis->wheels_pid, &chassis->current_wheels, &chassis->expected_state, &chassis->current_state);

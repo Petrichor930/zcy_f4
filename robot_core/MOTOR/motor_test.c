@@ -2,7 +2,7 @@
 #include "motor_ctrl.h"
 #include "motor_def.h"
 #include "pid.h"
-#include "rc.h"
+#include "Remote_Control.h"
 // #include "dwt.h"
 // #include "filter.h"
 // #include "kalman.h"
@@ -78,7 +78,7 @@ void motor_test_init()
 }
 
 
-void motor_test_loop(rc_ctrl_t *rc, rocker_t *rocker)
+void motor_test_loop(rc_ctrl_t *rc, RC_ctrl_t *rc_ctrl)
 {
     motors_t *motors = get_motors_ptr();
 

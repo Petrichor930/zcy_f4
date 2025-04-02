@@ -1,6 +1,6 @@
 #include "drv_uart.h"
 
-#define RX_DR_REG(huart) ((huart)->Instance->RDR)
+#define RX_DR_REG(huart) ((huart)->Instance->DR)
 
 // https://zhuanlan.zhihu.com/p/720966722
 // tips: H7的串口设置不要把overrun和idle事件混用，否则会导致数据丢失 反正默认别勾上overrun就行了
@@ -26,34 +26,38 @@ HAL_StatusTypeDef uart_recv_dma_H7multibuffer_init(UART_HandleTypeDef *huart, ui
 /*串口初始化DMA缓冲区函数*/
 HAL_StatusTypeDef uart_recv_dma_init(UART_HandleTypeDef *huart, uint8_t *rx_buffer, uint16_t len)
 {
-    HAL_UART_StateTypeDef state = huart->RxState;
-    if (state == HAL_UART_STATE_READY) {
-        __HAL_LOCK(huart);
-        huart->pRxBuffPtr = (uint8_t *)rx_buffer;
-        huart->RxXferSize = len;
-        huart->ErrorCode = HAL_UART_ERROR_NONE;
+	HAL_UART_StateTypeDef state = huart->RxState;
+	if (state == HAL_UART_STATE_READY)
+	{
+		__HAL_LOCK(huart);
+		huart->pRxBuffPtr = (uint8_t *)rx_buffer;
+		huart->RxXferSize = len;
+		huart->ErrorCode = HAL_UART_ERROR_NONE;
 
-        /* Enable the DMA Stream */                                              //?
-        HAL_DMA_Start(huart->hdmarx, (uint32_t)&huart->Instance->DR, (uint32_t)rx_buffer, len);
-        // HAL_DMA_Start(huart->hdmarx, (uint32_t)&huart->Instance->DR, (uint32_t)pData, Size);
-        /*
+		/* Enable the DMA Stream */
+		HAL_DMA_Start(huart->hdmarx, (uint32_t)&huart->Instance->DR, (uint32_t)rx_buffer, len);
+		// HAL_DMA_Start(huart->hdmarx, (uint32_t)&huart->Instance->DR, (uint32_t)pData, Size);
+		/*
 		 * Enable the DMA transfer for the receiver request by setting the DMAR bit
 		 * in the UART CR3 register
 		 */
-        SET_BIT(huart->Instance->CR3, USART_CR3_DMAR);
+		SET_BIT(huart->Instance->CR3, USART_CR3_DMAR);
 
-        __HAL_UART_CLEAR_OREFLAG(huart);
-        __HAL_UART_CLEAR_IDLEFLAG(huart);
+		__HAL_UART_CLEAR_OREFLAG(huart);
+		__HAL_UART_CLEAR_IDLEFLAG(huart);
 
-        //__HAL_UART_ENABLE_IT(huart,UART_IT_IDLE);
+		//__HAL_UART_ENABLE_IT(huart,UART_IT_IDLE);
 
-        __HAL_UNLOCK(huart);
+		__HAL_UNLOCK(huart);
 
-        return HAL_OK;
-    } else {
-        return HAL_BUSY;
-    }
+		return HAL_OK;
+	}
+	else
+	{
+		return HAL_BUSY;
+	}
 }
+
 
 /**
  * @brief      send a couple of characters to uart

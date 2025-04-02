@@ -81,24 +81,24 @@ extern "C" {
 #define WHEEL_LB_ID 3
 #define WHEEL_RB_ID 4
 
-#define JOINT1_ID   1
-#define JOINT2_ID   2
-#define JOINT3_ID   3
-#define JOINT4_ID   4
-#define JOINT5_ID   5
-#define JOINT6_ID   6
-#define JOINT7_ID   7
+// #define JOINT1_ID   1
+// #define JOINT2_ID   2
+// #define JOINT3_ID   3
+// #define JOINT4_ID   4
+// #define JOINT5_ID   5
+// #define JOINT6_ID   6
+// #define JOINT7_ID   7
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 所有电机结构体 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 typedef union {
     struct {
-        motor_t joint1;
-        motor_t joint2;
-        motor_t joint3;
-        motor_t joint4;
-        motor_t joint5;
-        motor_t joint6;
-        motor_t joint7;
+        // motor_t joint1;
+        // motor_t joint2;
+        // motor_t joint3;
+        // motor_t joint4;
+        // motor_t joint5;
+        // motor_t joint6;
+        // motor_t joint7;
 
         motor_t RF_wheel; // 右前方麦轮电机
         motor_t LF_wheel; // 左前方麦轮电机

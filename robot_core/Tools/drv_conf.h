@@ -82,8 +82,8 @@ extern "C" {
 #endif
 
 #ifdef USE_RC_UART
-#define RC_UART        UART5
-#define RC_UART_HANDLE huart5
+#define RC_UART        USART3
+#define RC_UART_HANDLE huart3
 #endif
 
 #ifdef USE_VOFA

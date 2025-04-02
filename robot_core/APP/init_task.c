@@ -2,6 +2,8 @@
 #include "init_task.h"
 #include "tim.h" 
 #include "can.h" 
+#include "FreeRTOS.h"
+#include "task.h"
 
 uint32_t chassis_cnt = 0;
 uint16_t chassis_freq = 0;
@@ -13,6 +15,7 @@ QueueHandle_t imuQueue;
 SemaphoreHandle_t xChassisSemaphore;
 QueueHandle_t rcQueue; // 遥控器数据队列
 
+Chassis chassis;
 
 void chassis_task(void);
 
@@ -26,20 +29,21 @@ void robot_init(void)
     can_user_init(&hcan2, can_filter_id, CAN_FILTER_FIFO1);
 
     HAL_TIM_Base_Start_IT(&htim2); 
-    rc_recv_dma_init();
+    remote_control_init();
 
     xMutex_set_all_motor_output = xSemaphoreCreateMutex();
     xMutex_update_rc_last_key = xSemaphoreCreateMutex();
 
-    imuQueue = xQueueCreate(1, sizeof(float));
-    rcQueue = xQueueCreate(10, sizeof(rocker_t)); // 创建遥控器数据队列
+
+    chassis.rocker_queue = xQueueCreate(10, sizeof(RC_ctrl_t *)); // 创建遥控器数据队列
+    chassis.mutex = xSemaphoreCreateMutex(); // 创建互斥锁
 
     // 创建二值信号量
     xChassisSemaphore = xSemaphoreCreateBinary();
 
     // 创建底盘任务
-    static Chassis chassis;
-    xTaskCreate((TaskFunction_t)chassis_task, "Chassis_Task", 128, &chassis, 2, NULL);
+
+    xTaskCreate((TaskFunction_t)chassis_task, "Chassis_Task", 128, &xChassisSemaphore, 2, NULL);
 
     __enable_irq();
 
@@ -48,8 +52,8 @@ void robot_init(void)
 
 void chassis_task(void)
 {
-    static Chassis chassis;
-    static rocker_t rocker;
+
+    static  RC_ctrl_t *rc_ctrl;
 
     while (1) {
         // 等待信号量
@@ -58,10 +62,10 @@ void chassis_task(void)
             Chassis_Update(&chassis);
 
             // 获取摇杆数据
-            if (xQueueReceive(chassis.rocker_queue, &rocker, 0) == pdPASS) {
-                // 运行底盘主循环
-                Chassis_Loop(&chassis, rocker);
-            }
+            // if (xQueueReceive(chassis.rocker_queue, &rocker, 0) == pdPASS) {
+            //     // 运行底盘主循环
+                Chassis_Loop(&chassis, rc_ctrl);
+            // }
         }
     }
 }

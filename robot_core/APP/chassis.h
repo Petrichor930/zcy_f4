@@ -8,7 +8,9 @@
 #include "queue.h"
 #include "semphr.h"
 #include "timers.h" // FreeRTOS 定时器头文件
-#include "rc.h"
+#include "Remote_Control.h"
+
+
 #include <math.h>
 #include <string.h>
 
@@ -55,7 +57,7 @@ typedef struct {
 // 函数声明
 void Chassis_Init(Chassis *chassis);
 void Chassis_Update(Chassis *chassis);
-void Chassis_Loop(Chassis *chassis, const rocker_t rocker);void Chassis_State_clear(Chassis *chassis, chassis_state_t *state);
+void Chassis_Loop(Chassis *chassis, const RC_ctrl_t *rc_ctrl);void Chassis_State_clear(Chassis *chassis, chassis_state_t *state);
 void Chassis_Update_tag(Chassis *chassis, chassis_tag_t C_TAG);
 uint8_t Chassis_Is_reseted(Chassis *chassis);
 
